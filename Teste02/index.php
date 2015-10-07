@@ -6,6 +6,7 @@
 </head>
 <body>
 <?php
+echo "olá mundo!";
 ?>
 </body>
 </html>
