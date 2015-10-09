@@ -7,6 +7,7 @@
  * Date: 08/10/15
  * Time: 16:18
  */
+
 class banco
 {
 
@@ -25,7 +26,7 @@ class banco
     /** @var string Nome do Banco de Dados */
     public $banco = "aulas";
 
-    /** @var null Ainda não sei hehe */
+    /** @var resource Conexão com o banco */
     public $conexao = NULL;
 
     /** @var null DataSet */
@@ -34,26 +35,10 @@ class banco
     /** @var int Quantidade de linhas afetadas pela ultima operação */
     private $linhasAfetadas = -1;
 
-    /**
-     * banco constructor.
-     * @param string $servidor
-     * @param string $porta
-     * @param string $usuario
-     * @param string $senha
-     * @param string $banco
-     * @param null $conexao
-     */
+
     public function __construct()
     {
         $this->conecta();
-        //$servidor, $porta, $usuario, $senha, $banco, $conexao
-        /*$this->servidor = $servidor;
-        $this->porta = $porta;
-        $this->usuario = $usuario;
-        $this->senha = $senha;
-        $this->banco = $banco;
-        $this->conexao = $conexao;
-        */
     }
 
     public function __destruct()
@@ -65,107 +50,13 @@ class banco
 
     public function conecta()
     {
-        $this->conexao = pg_connect("host={$this->servidor} port={$this->porta} dbname={$this->banco} user={$this->usuario} password={$this->senha}");// or die("Erro");
-        echo "<p class='sucesso'>Conectado com Sucesso!</p>";
-    }
+        //$this->conexao = pg_connect("host={$this->servidor} port={$this->porta} dbname={$this->banco} user={$this->usuario} password={$this->senha}"); //or die("Erro");
+        try {
+            $this->conexao = new PDO("pgsql:host={$this->servidor} port={$this->porta} dbname={$this->banco} user={$this->usuario} password={$this->senha}"); //or die("Erro");
+            echo '<script> console.log("Conectado ao Banco"); </script>'; //Debug
+        } catch (PDOException $e) {
 
-    public function inserir($objeto)
-    {
-        reset($objeto->camposValores);
-        $sql = "INSERT INTO {$objeto->banco}.{$objeto->tabela} (";
-
-
-        $objeto->addCampo($objeto->campoPK, $objeto->valorPK);
-
-        for ($i = 0; $i < count($objeto->camposValores); $i++) {
-            $sql .= key($objeto->camposValores);
-            if ($i < count($objeto->camposValores) - 1) {
-                $sql .= ", ";
-            }
-            next($objeto->camposValores);
         }
-
-        reset($objeto->camposValores);
-
-        $sql .= ") VALUES (";
-
-        for ($i = 0; $i < count($objeto->camposValores); $i++) {
-            if (is_numeric($objeto->camposValores[key($objeto->camposValores)])) {
-                $sql .= $objeto->camposValores[key($objeto->camposValores)];
-            } else {
-                $sql .= "'" . $objeto->camposValores[key($objeto->camposValores)] . "'";
-            }
-
-
-            if ($i < count($objeto->camposValores) - 1) {
-                $sql .= ", ";
-            }
-            next($objeto->camposValores);
-        }
-
-        $objeto->delCampo($objeto->campoPK);
-
-        $sql .= ");";
-        echo $sql;
-        return $this->executaSQL($sql);
-
-    }
-
-    public function alterar($objeto)
-    {
-        $sql = "UPDATE {$objeto->banco}.{$objeto->tabela} SET ";
-
-        for ($i = 0; $i < count($objeto->camposValores); $i++) {
-
-            $sql .= key($objeto->camposValores) . " = ";
-
-            if (is_numeric($objeto->camposValores[key($objeto->camposValores)])) {
-                $sql .= $objeto->camposValores[key($objeto->camposValores)];
-            } else {
-                $sql .= "'" . $objeto->camposValores[key($objeto->camposValores)] . "'";
-            }
-            if ($i < count($objeto->camposValores) - 1) {
-                $sql .= ", ";
-            }
-            next($objeto->camposValores);
-        }
-
-        $sql .= " WHERE " . $objeto->tabela . "." . $objeto->campoPK . " = " . $objeto->valorPK;
-
-        /*if (is_numeric($objeto->campoPK[key($objeto->campoPK)])) {
-            $sql .= $objeto->campoPK[key($objeto->campoPK)];
-        } else {
-            $sql .= "'".$objeto->campoPK[key($objeto->campoPK)]."'";
-        }*/
-
-        ////
-
-
-        $sql .= ";";
-        return $this->executaSQL($sql);
-
-
-    }
-
-    public function deletar($objeto)
-    {
-        $sql = "DELETE FROM  {$objeto->banco}.{$objeto->tabela} ";
-
-
-        $sql .= " WHERE " . $objeto->tabela . "." . $objeto->campoPK . " = " . $objeto->valorPK;
-
-        /*if (is_numeric($objeto->campoPK[key($objeto->campoPK)])) {
-            $sql .= $objeto->campoPK[key($objeto->campoPK)];
-        } else {
-            $sql .= "'".$objeto->campoPK[key($objeto->campoPK)]."'";
-        }*/
-
-        ////
-
-        $sql .= ";";
-        echo $sql;
-        return $this->executaSQL($sql);
-
 
     }
 
@@ -181,14 +72,6 @@ class banco
         return $querry;
     }
 
-    public function executaSelect($sql = NULL)
-    {
-        $querry = $this->executaSQL($sql);
-        $this->dataset = $querry;
-        return $querry;
-    }
-
-
     public function retornaDados($tipo = NULL)
     {
         switch (strtolower($tipo)) {
@@ -203,78 +86,30 @@ class banco
         }
     }
 
-    public function selecionarTudo($objeto)
-    {
-        $sql = "SELECT * FROM " . $objeto->banco . "." . $objeto->tabela . " ";
-        if ($objeto->extrasSelect != NULL) {
-            $sql .= $objeto->extrasSelect;
-        }
-
-        $sql .= ";";
-
-        $this->executaSelect($sql);
-    }
-
-    public function selecionarCampos($objeto)
-    {
-        $sql = "SELECT ";
-
-        for ($i = 0; $i < count($objeto->camposValores); $i++) {
-            $sql .= key($objeto->camposValores);
-            if ($i < count($objeto->camposValores) - 1) {
-                $sql .= ", ";
-            }
-            next($objeto->camposValores);
-        }
-
-
-        $sql .= " FROM " . $objeto->banco . "." . $objeto->tabela . " ";
-        if ($objeto->extrasSelect != NULL) {
-            $sql .= $objeto->extrasSelect;
-        }
-
-        $sql .= ";";
-
-        $o = $this->executaSelect($sql);
-    }
-
-    public function trataErro($arquivo = NULL, $rotina = NULL, $numErro = NULL, $mensagem = NULL, $geraExcept = false)
-    {
-        if ($arquivo == NULL) $arquivo = "não informado";
-        if ($rotina == NULL) $rotina = "não informado";
-        if ($numErro == NULL) $numErro = pg_last_error($this->conexao);
-        if ($mensagem == NULL) $mensagem = pg_errormessage($this->conexao);
-
-        $res = "Ocorreu um erro com em {$arquivo} ao {$rotina}. <br>Erro número {$numErro} - {$mensagem}.";
-
-        if ($geraExcept) {
-            die($res);
-        } else {
-            echo $res;
-        }
-
-    }
-
-
-    /**
-     * @return int
-     */
     public function getLinhasAfetadas()
     {
         return $this->linhasAfetadas;
     }
 
-    /**
-     * @param int $linhasAfetadas
-     */
     public function setLinhasAfetadas($linhasAfetadas)
     {
         $this->linhasAfetadas = $linhasAfetadas;
-        /*if (is_int($linhasAfetadas)) {
-            $this->linhasAfetadas = $linhasAfetadas;
-        } else {
-            $this->trataErro(__FILE__,__FUNCTION__,NULL,"Parâmetro inválido enviado para a propriedade Linhas Afetadas!");
-        }*/
+    }
+
+    /**
+     * @return null
+     */
+    public function getConexao()
+    {
+        return $this->conexao;
+    }
+
+    /**
+     * @param null $conexao
+     */
+    public function setConexao($conexao)
+    {
+        $this->conexao = $conexao;
     }
 
 }
