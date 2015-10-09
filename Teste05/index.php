@@ -13,27 +13,18 @@ require_once("_classes/clientes.php");
 echo "<p class='sucesso'>Conectado com Sucesso!</p>";
 
 $c = new clientes();
-/*
-$c->setValor("nome", "Arthur");
-$c->setValor("sobrenome", "Ruf");
-$c->valorPK = 1;
-$c->campoPK = "id";
 
+$c->setCid(6);
+$c->setCnome('Hellen');
+$c->setCsobrenome("Borba");
 
-$c->inserir();
-echo "<br>";
-$c->alterar();
-echo "<br>";
-$c->deletar();
-echo "<br>";*/
-/*$c->extrasSelect = " LIMIT 3";
-$c->selecionarCampos($c);
+//$c->inserirBanco();
+//$c->atualizarBanco();
+//$c->excluirBanco();
 
 while ($res = $c->retornaDados()) {
     echo $res->id . " / " . $res->nome . " / " . $res->sobrenome . "<br>";
-}*/
-
-//select coalesce(max(clientes.id), 0)+1 from aulas.clientes;
+}
 
 echo "<hr><pre>";
 var_dump($c);

@@ -7,7 +7,6 @@
  * Date: 08/10/15
  * Time: 16:18
  */
-
 class banco
 {
 
@@ -73,23 +72,54 @@ class banco
 
     public function executaSQL($sql = NULL)
     {
-        $st = $this->getConexao()->prepare($sql);
-        $st->execute();
-        return $st;
+        if ($sql != NULL) {
+            //alterar para pg_query_params()
+            $querry = pg_query($this->conexao, $sql) or $this->trataErro(__FILE__, __FUNCTION__);
+            $this->setLinhasAfetadas(pg_affected_rows($querry));
+        } else {
+            $this->trataErro(__FILE__, __FUNCTION__, NULL, 'Comando SQL não informado na rotina', FALSE);
+        }
+        return $querry;
     }
 
     public function retornaDados($tipo = NULL)
     {
-
-    }
-
-    public function getConexao()
-    {
-        if ($this->conexao != NULL) {
-            return $this->conexao;
-        } else {
-            $this->conecta();
-            return $this->conexao;
+        switch (strtolower($tipo)) {
+            case "array":
+                return pg_fetch_array($this->dataset);
+            case "assoc":
+                return pg_fetch_assoc($this->dataset);
+            case "object":
+                return pg_fetch_object($this->dataset);
+            default:
+                return pg_fetch_object($this->dataset);
         }
     }
+
+    public function getLinhasAfetadas()
+    {
+        return $this->linhasAfetadas;
+    }
+
+    public function setLinhasAfetadas($linhasAfetadas)
+    {
+        $this->linhasAfetadas = $linhasAfetadas;
+    }
+
+    /**
+     * @return null
+     */
+    public function getConexao()
+    {
+        return $this->conexao;
+    }
+
+    /**
+     * @param null $conexao
+     */
+    public function setConexao($conexao)
+    {
+        $this->conexao = $conexao;
+    }
+
 }
